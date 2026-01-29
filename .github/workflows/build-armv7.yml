@@ -32,7 +32,7 @@ jobs:
             sh -c "
               apt-get update && \
               apt-get install -y libpam0g-dev && \
-              go mod tidy -compat=1.22 && \
+              apt-get clean && rm -rf /var/lib/apt/lists/* && \
               mkdir -p bin && \
               go build -trimpath -o bin/rdpgw-armv7 ./cmd/rdpgw && \
               go build -trimpath -o bin/rdpgw-auth-armv7 ./cmd/auth
