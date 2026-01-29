@@ -12,6 +12,8 @@ jobs:
   build-armv7:
     name: Build for ARMv7
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Check out code
