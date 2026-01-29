@@ -1,0 +1,56 @@
+name: Build ARMv7
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-armv7:
+    name: Build for ARMv7
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ARMv7 binaries in Docker
+        run: |
+          docker run --rm --platform linux/arm/v7 \
+            -v "$(pwd)":/workspace \
+            -w /workspace \
+            golang:1.22-bookworm \
+            sh -c "
+              apt-get update && \
+              apt-get install -y libpam0g-dev && \
+              apt-get clean && rm -rf /var/lib/apt/lists/* && \
+              mkdir -p bin && \
+              go build -trimpath -o bin/rdpgw-armv7 ./cmd/rdpgw && \
+              go build -trimpath -o bin/rdpgw-auth-armv7 ./cmd/auth
+            "
+
+      - name: Verify built binaries
+        run: |
+          ls -lh bin/
+          file bin/rdpgw-armv7
+          file bin/rdpgw-auth-armv7
+
+      - name: Upload ARMv7 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rdpgw-armv7-binaries
+          path: |
+            bin/rdpgw-armv7
+            bin/rdpgw-auth-armv7
+          retention-days: 30
